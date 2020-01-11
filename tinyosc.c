@@ -18,6 +18,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #if _WIN32
 #include <winsock2.h>
 #define tosc_strncpy(_dst, _src, _len) strncpy_s(_dst, _len, _src, _TRUNCATE)
@@ -31,8 +32,75 @@
 #define ntohll(x) be64toh(x)
 #endif
 #include "tinyosc.h"
+#include "simd-string.h"
 
 #define BUNDLE_ID 0x2362756E646C6500L // "#bundle"
+
+static tosc_method **registeredMethods = NULL;
+static size_t registeredMethodCount;
+
+bool tosc_registerMethod(tosc_method *m) {
+  size_t addr_len = sse42_strlen(m->address);
+  if (addr_len == 0)
+    return false;
+  if (m->address[0] != '/')
+    return false;
+  if (m->address[addr_len-1] == '/')
+    return false;
+  if (sse42_strchr(m->address, ' ') ||
+      	    sse42_strchr(m->address, '#') ||
+      	    sse42_strchr(m->address, '*') ||
+      	    sse42_strchr(m->address, ',') ||
+      	    sse42_strchr(m->address, '?') ||
+      	    sse42_strchr(m->address, '[') ||
+      	    sse42_strchr(m->address, ']') ||
+      	    sse42_strchr(m->address, '{') ||
+      	    sse42_strchr(m->address, '}')) {
+     return false;
+  }
+
+  registeredMethods = realloc(registeredMethods, (registeredMethodCount+1)*sizeof(tosc_method*));
+  registeredMethods[registeredMethodCount++] = m;
+  return true;
+}
+
+void tosc_cleanup() {
+  free(registeredMethods);
+}
+
+size_t count_slashes(char *str) {
+  size_t slashes = 0;
+  char *slash_pos;
+  while (str != NULL)  {
+    slash_pos = sse42_strchr(str, '/');
+    if (slash_pos)
+      slashes++;
+    if (!slash_pos)
+      break;
+    str = slash_pos+1;
+  }
+  return slashes;
+}
+
+void tosc_dispatchMethod(tosc_message *o) {
+  char *_pattern = tosc_getAddress(o);
+  size_t pattern_slashes = count_slashes(_pattern);
+
+  for (size_t i = 0; i < registeredMethodCount; ++i) {
+    char *_address = registeredMethods[i]->address;
+
+    size_t address_slashes = count_slashes(_address);
+    if (pattern_slashes != address_slashes)
+      continue;
+
+    // at this point it's possible for the paths to match
+
+    const char *pattern = tosc_getAddress(o);
+    const char *address = registeredMethods[i]->address;
+
+    printf("possible for %s to match %s\n", pattern, address);
+  }
+}
 
 // http://opensoundcontrol.org/spec-1_0
 int tosc_parseMessage(tosc_message *o, char *buffer, const int len) {
@@ -309,8 +377,8 @@ void tosc_printMessage(tosc_message *osc) {
       case 'f': printf(" %g", tosc_getNextFloat(osc)); break;
       case 'd': printf(" %g", tosc_getNextDouble(osc)); break;
       case 'i': printf(" %d", tosc_getNextInt32(osc)); break;
-      case 'h': printf(" %lld", tosc_getNextInt64(osc)); break;
-      case 't': printf(" %lld", tosc_getNextTimetag(osc)); break;
+      case 'h': printf(" %ld", tosc_getNextInt64(osc)); break;
+      case 't': printf(" %ld", tosc_getNextTimetag(osc)); break;
       case 's': printf(" %s", tosc_getNextString(osc)); break;
       case 'F': printf(" false"); break;
       case 'I': printf(" inf"); break;

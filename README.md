@@ -1,3 +1,15 @@
+# OSC-redux
+
+A fork of https://github.com/mhroth/tinyosc with OSC pattern matching implemented using SIMD string methods. Dependencies:
+
+* https://github.com/WojciechMula/simd-string
+* https://github.com/WojciechMula/sse4-strstr
+* https://github.com/yoggy/sendosc for testing
+
+These are checked in as regular source files (not git submodules) to contain my modifications.
+
+**original README below**
+
 # TinyOSC
 
 TinyOSC is a minimal [Open Sound Control](http://opensoundcontrol.org/) (OSC) library written in C. The typical use case is to parse a raw buffer received directly from a socket. Given the limited nature of the library it also tends to be quite fast. It doesn't hold on to much state and it doesn't do much error checking. If you have a good idea of what OSC packets you will receive and need to process them quickly, this library might be for you.

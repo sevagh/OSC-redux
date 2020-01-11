@@ -37,7 +37,7 @@ size_t sse41_strlen(const char* s) {
 }
 
 
-size_t sse42_strlen(const char* s) {
+extern "C" size_t sse42_strlen(const char* s) {
 
     size_t result = 0;
 

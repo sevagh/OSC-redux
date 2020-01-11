@@ -26,6 +26,11 @@
 extern "C" {
 #endif
 
+typedef struct tosc_method {
+  char *address;
+  void (*dispatchFunc)(void *arg);
+} tosc_method;
+
 typedef struct tosc_message {
   char *format;  // a pointer to the format field
   char *marker;  // the current read head
@@ -171,6 +176,19 @@ void tosc_printOscBuffer(char *buffer, const int len);
  * to stdout.
  */
 void tosc_printMessage(tosc_message *o);
+
+/**
+ * Register a method, return false if it contains disallowed characters
+ */
+bool tosc_registerMethod(tosc_method *m);
+
+/**
+ * Dispatch registered methods that match the message
+ */
+void tosc_dispatchMethod(tosc_message *o);
+
+// Global cleanup
+void tosc_cleanup();
 
 #ifdef __cplusplus
 }

@@ -31,6 +31,16 @@ static void sigintHandler(int x) {
   keepRunning = false;
 }
 
+void foo_bar_handler(void *param) {
+  int x = *(int*)(param);
+  printf("FOO BAR int param! %d\n", x);
+}
+
+void baz_qux_handler(void *param) {
+  int x = *(int*)(param);
+  printf("BAZ QUX int param! %d\n", x);
+}
+
 /**
  * A basic program to listen to port 9000 and print received OSC packets.
  */
@@ -45,6 +55,16 @@ int main(int argc, char *argv[]) {
       1.0f, "hello world", -1, sizeof(blob), blob);
   tosc_printOscBuffer(buffer, len);
   printf("done.\n");
+
+  printf("registering some methods\n");
+  tosc_method tm1 = { "/foo/bar", foo_bar_handler};
+  if (!tosc_registerMethod(&tm1)) {
+    printf("error registering method %s\n", tm1.address);
+    return -1;
+  }
+
+  tosc_method tm2 = { "/baz/qux", baz_qux_handler};
+  tosc_registerMethod(&tm2);
 
   // register the SIGINT handler (Ctrl+C)
   signal(SIGINT, &sigintHandler);
@@ -77,11 +97,13 @@ int main(int argc, char *argv[]) {
           tosc_message osc;
           while (tosc_getNextMessage(&bundle, &osc)) {
             tosc_printMessage(&osc);
+	    tosc_dispatchMethod(&osc);
           }
         } else {
           tosc_message osc;
           tosc_parseMessage(&osc, buffer, len);
           tosc_printMessage(&osc);
+	  tosc_dispatchMethod(&osc);
         }
       }
     }
@@ -89,6 +111,9 @@ int main(int argc, char *argv[]) {
 
   // close the UDP socket
   close(fd);
+
+  // free method handlers
+  tosc_cleanup();
 
   return 0;
 }
