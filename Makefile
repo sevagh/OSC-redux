@@ -12,7 +12,4 @@ clean:
 libsimd-string:
 	make -C $(SIMD_STRING_DIR) libsimd-string
 
-libsse4-strstr:
-	make -C $(SSE4_STRSTR_DIR) libsse4-strstr
-
 .PHONY: deps clean

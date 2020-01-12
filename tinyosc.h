@@ -26,17 +26,17 @@
 extern "C" {
 #endif
 
-typedef struct tosc_method {
-  char *address;
-  void (*dispatchFunc)(void *arg);
-} tosc_method;
-
 typedef struct tosc_message {
   char *format;  // a pointer to the format field
   char *marker;  // the current read head
   char *buffer;  // the original message data (also points to the address)
   uint32_t len;  // length of the buffer data
 } tosc_message;
+
+typedef struct tosc_method {
+  char *address;
+  void (*dispatchFunc)(tosc_message*);
+} tosc_method;
 
 typedef struct tosc_bundle {
   char *marker; // the current write head (where the next message will be written)

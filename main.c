@@ -31,14 +31,12 @@ static void sigintHandler(int x) {
   keepRunning = false;
 }
 
-void foo_bar_handler(void *param) {
-  int x = *(int*)(param);
-  printf("FOO BAR int param! %d\n", x);
+void foo_bar_handler(tosc_message *o) {
+  printf("FOO BAR\n");
 }
 
-void baz_qux_handler(void *param) {
-  int x = *(int*)(param);
-  printf("BAZ QUX int param! %d\n", x);
+void baz_qux_handler(tosc_message *o) {
+  printf("BAZ QUX\n");
 }
 
 /**

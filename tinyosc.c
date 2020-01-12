@@ -82,6 +82,8 @@ size_t count_slashes(char *str) {
   return slashes;
 }
 
+bool osc_full_match(const char *pattern, const char *address);
+
 void tosc_dispatchMethod(tosc_message *o) {
   char *_pattern = tosc_getAddress(o);
   size_t pattern_slashes = count_slashes(_pattern);
@@ -94,11 +96,12 @@ void tosc_dispatchMethod(tosc_message *o) {
       continue;
 
     // at this point it's possible for the paths to match
-
     const char *pattern = tosc_getAddress(o);
     const char *address = registeredMethods[i]->address;
 
-    printf("possible for %s to match %s\n", pattern, address);
+    if (osc_full_match(pattern, address)) {
+      registeredMethods[i]->dispatchFunc(o);
+    }
   }
 }
 
