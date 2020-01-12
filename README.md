@@ -1,12 +1,42 @@
 # OSC-redux
 
-A fork of https://github.com/mhroth/tinyosc with OSC pattern matching implemented using SIMD string methods. Dependencies:
+A fork of [mhroth/tinyosc](https://github.com/mhroth/tinyosc) with OSC pattern matching implemented using SIMD string methods. [Matching code](./tinyosc_match.c) is copied from [CNMAT/OSC](https://github.com/CNMAT/OSC) with `strlen` and `strcmp` replaced with their SIMD/SSE4 equivalents from [WojciechMula/simd-string](https://github.com/WojciechMula/simd-string).
 
-* https://github.com/WojciechMula/simd-string
-* https://github.com/WojciechMula/sse4-strstr
-* https://github.com/yoggy/sendosc for testing
+All dependencies are checked in as regular source files (not git submodules) to contain my modifications. Additional matching API added:
 
-These are checked in as regular source files (not git submodules) to contain my modifications.
+```c
+void foo_bar_handler(tosc_message *o) {
+  printf("FOO BAR\n");
+}
+
+// register methods with addresses and handlers
+tosc_method tm = { "/foo/bar", foo_bar_handler};
+if (!tosc_registerMethod(&tm)) {
+  printf("error registering method %s\n", tm.address);
+  return -1;
+}
+
+// receive a message and dispatch the matching method
+tosc_dispatchMethod(&osc);
+
+// clean up static global array of registeredMethods
+tosc_cleanup();
+```
+
+Examples using [yoggy/sendosc](https://github.com/yoggy/sendosc):
+
+```
+$ ./tinyosc
+[24 bytes] /{foo,baz}/q* i 123
+BAZ QUX
+[24 bytes] /{foo,baz}/[q]* i 123
+BAZ QUX
+[28 bytes] /{foo,baz}/[qb]* i 123
+FOO BAR
+BAZ QUX
+[28 bytes] /{foo,baz}/[!q]* i 123
+FOO BAR
+```
 
 **original README below**
 

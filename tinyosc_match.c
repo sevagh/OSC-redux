@@ -24,6 +24,7 @@
  HEREUNDER IS PROVIDED "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE
  MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
+#include <simd-string.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -47,9 +48,9 @@ bool osc_full_match(const char *pattern, const char *address) {
 
 int osc_match(const char *pattern, const char *address, int *pattern_offset, int *address_offset)
 {
-	if(!strcmp(pattern, address)){
-		*pattern_offset = strlen(pattern);
-		*address_offset = strlen(address);
+	if(!sse42_strcmp(pattern, address)){
+		*pattern_offset = sse42_strlen(pattern);
+		*address_offset = sse42_strlen(address);
 		return OSC_MATCH_ADDRESS_COMPLETE | OSC_MATCH_PATTERN_COMPLETE;
 	}
 	
